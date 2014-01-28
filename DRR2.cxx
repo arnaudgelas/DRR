@@ -3,6 +3,8 @@
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkThresholdImageFilter.h"
 #include "itkAccumulateImageFilter.h"
+#include "itkClampImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
 
 int main( int argc, char* argv[] )
 {
@@ -62,18 +64,37 @@ int main( int argc, char* argv[] )
   threshold->SetOutsideValue( outsideValue );
 
   typedef double      OutputPixelType;
-  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;;
+  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
 
   typedef itk::AccumulateImageFilter< InputImageType, OutputImageType > FilterType;
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput( threshold->GetOutput() );
   filter->SetAccumulateDimension( accumulateDimension );
 
+//  typedef itk::ThresholdImageFilter< OutputImageType > OutputThresholdFilterType;
+//  OutputThresholdFilterType::Pointer outputThreshold = OutputThresholdFilterType::New();
+//  outputThreshold->SetInput( filter->GetOutput() );
+//  outputThreshold->ThresholdOutside( 0, 45000 );
+//  outputThreshold->SetOutsideValue( 45000 );
+
+//  typedef unsigned char RescaledPixelType;
+//  typedef itk::Image< RescaledPixelType, Dimension > RescaledImageType;
+  typedef itk::RescaleIntensityImageFilter< OutputImageType, OutputImageType > RescaleFilterType;
+  RescaleFilterType::Pointer rescale = RescaleFilterType::New();
+  rescale->SetInput( filter->GetOutput() );
+  rescale->SetOutputMinimum( 0 );
+  rescale->SetOutputMaximum( 255 );
+
+  typedef itk::ClampImageFilter< OutputImageType, OutputImageType > ClampFilterType;
+  ClampFilterType::Pointer clamp = ClampFilterType::New();
+  clamp->SetBounds( 0, 30000 );
+  clamp->SetInput( filter->GetOutput() );
+
   typedef itk::ImageFileWriter< OutputImageType > WriterType;
 //  typedef itk::ImageFileWriter< InputImageType > WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outputFileName );
-  writer->SetInput( filter->GetOutput() );
+  writer->SetInput( rescale->GetOutput() );
 //  writer->SetInput( roiFilter->GetOutput() );
   try
     {
