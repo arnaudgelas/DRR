@@ -13,3 +13,10 @@ target_link_libraries( DRR
   ${ITK_LIBRARIES}
 #  ${Boost_LIBRARIES}
 )
+
+
+add_executable( DRR2 DRR2.cxx )
+target_link_libraries( DRR2
+  ${ITK_LIBRARIES}
+#  ${Boost_LIBRARIES}
+)
